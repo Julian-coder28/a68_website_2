@@ -1,0 +1,943 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>a68</title>
+<style>
+:root {
+  --bg1: #061427;
+  --bg2: #0A2140;
+  --purple: #3a1b58;
+  --accent: #2da8ff;
+  --mx: 50%;
+  --my: 50%;
+}
+* {
+  box-sizing: border-box;
+}
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: "IBM Plex Sans", "Segoe UI", "Helvetica Neue", "Noto Sans", sans-serif;
+  color: #e8f2ff;
+  background: radial-gradient(circle at 25% 20%, rgba(90, 45, 130, 0.35), rgba(6, 20, 39, 0)),
+    linear-gradient(135deg, #291238 0%, #0b1b33 45%, #061427 100%);
+}
+body {
+  min-height: calc(100vh + 180px);
+  overflow-x: hidden;
+  position: relative;
+}
+#bg {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+#overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--mx) var(--my), rgba(45, 168, 255, 0.22), rgba(6, 20, 39, 0) 45%);
+  mix-blend-mode: screen;
+  opacity: 0.6;
+}
+#noise {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/></filter><rect width='120' height='120' filter='url(%23n)' opacity='0.12'/></svg>");
+  opacity: 0.18;
+  mix-blend-mode: soft-light;
+}
+main {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 0 5vw;
+}
+.hero {
+  max-width: 1100px;
+}
+.lang {
+  display: none;
+}
+.lang-en .lang-en,
+.lang-de .lang-de {
+  display: block;
+}
+h1 {
+  font-size: clamp(2.6rem, 5.2vw, 5.4rem);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  margin: 0 0 1.2rem;
+  color: rgba(232, 242, 255, 0.75);
+  text-shadow: 0 8px 30px rgba(6, 20, 39, 0.4);
+}
+h1 .accent {
+  color: var(--accent);
+}
+h1 .bright {
+  color: #f2f6ff;
+}
+p {
+  margin: 0 0 2.2rem;
+  font-size: clamp(1.05rem, 1.85vw, 1.3rem);
+  color: rgba(232, 242, 255, 0.6);
+}
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  justify-content: center;
+  align-items: center;
+}
+input[type="email"] {
+  background: rgba(9, 15, 30, 0.45);
+  border: 1px solid rgba(122, 140, 190, 0.35);
+  color: #e8f2ff;
+  padding: 1rem 1.4rem;
+  border-radius: 999px;
+  min-width: 300px;
+  max-width: 520px;
+  width: min(78vw, 520px);
+  outline: none;
+  box-shadow: 0 0 0 1px rgba(45, 168, 255, 0.08), inset 0 0 18px rgba(8, 18, 36, 0.8);
+}
+input[type="email"]::placeholder {
+  color: rgba(232, 242, 255, 0.35);
+}
+input[type="email"]:focus {
+  border-color: rgba(45, 168, 255, 0.85);
+  box-shadow: 0 0 0 2px rgba(45, 168, 255, 0.2), inset 0 0 22px rgba(8, 18, 36, 0.9);
+}
+button {
+  background: rgba(9, 15, 30, 0.5);
+  border: 1px solid rgba(45, 168, 255, 0.9);
+  color: #eef4ff;
+  font-weight: 600;
+  padding: 0.95rem 2.2rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 12px 32px rgba(45, 168, 255, 0.2);
+}
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 36px rgba(45, 168, 255, 0.35);
+}
+button:active {
+  transform: translateY(0);
+}
+#status {
+  margin-top: 1rem;
+  min-height: 1.2rem;
+  font-size: 0.95rem;
+  color: rgba(45, 168, 255, 0.9);
+}
+.footer-link {
+  position: fixed;
+  left: 50%;
+  bottom: 1.75rem;
+  z-index: 3;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-50%) translateY(6px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.lang-switch {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.75rem;
+  z-index: 4;
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+}
+.lang-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.4rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(8, 18, 36, 0.7);
+  border: 1px solid rgba(45, 168, 255, 0.25);
+  color: rgba(232, 242, 255, 0.75);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgba(6, 20, 39, 0.45);
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+  user-select: none;
+}
+.lang-link:hover {
+  color: rgba(232, 242, 255, 0.95);
+  border-color: rgba(45, 168, 255, 0.6);
+  transform: translateY(-1px);
+}
+.lang-link.is-active {
+  color: rgba(232, 242, 255, 0.98);
+  border-color: rgba(45, 168, 255, 0.8);
+  background: rgba(45, 168, 255, 0.12);
+}
+.footer-link.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+.impressum-link {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(8, 18, 36, 0.7);
+  border: 1px solid rgba(45, 168, 255, 0.25);
+  color: rgba(232, 242, 255, 0.75);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgba(6, 20, 39, 0.45);
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.impressum-link:hover {
+  color: rgba(232, 242, 255, 0.95);
+  border-color: rgba(45, 168, 255, 0.6);
+  transform: translateY(-1px);
+}
+.impressum-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  background: linear-gradient(135deg, rgba(17, 34, 60, 0.96), rgba(6, 20, 39, 0.96)),
+    radial-gradient(circle at 25% 20%, rgba(78, 214, 209, 0.08), rgba(6, 20, 39, 0)),
+    linear-gradient(180deg, #061427, #0A2140);
+  color: #e8f2ff;
+  overflow-y: auto;
+}
+.impressum-panel::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/></filter><rect width='120' height='120' filter='url(%23n)' opacity='0.12'/></svg>");
+  opacity: 0.18;
+  mix-blend-mode: soft-light;
+}
+.impressum-panel:target {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.impressum-content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 6rem 8vw 5rem;
+  position: relative;
+  z-index: 1;
+}
+.impressum-panel h2 {
+  margin: 0 0 1.8rem;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.impressum-block {
+  margin-bottom: 1.5rem;
+  color: rgba(232, 242, 255, 0.8);
+  line-height: 1.65;
+  font-size: 0.98rem;
+}
+.impressum-panel strong {
+  color: rgba(232, 242, 255, 0.95);
+}
+.impressum-panel a {
+  color: rgba(78, 214, 209, 0.9);
+  text-decoration: none;
+}
+.impressum-panel a:hover {
+  text-decoration: underline;
+}
+.impressum-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  background: rgba(8, 18, 36, 0.7);
+  border: 1px solid rgba(78, 214, 209, 0.25);
+  color: rgba(232, 242, 255, 0.85);
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.impressum-back:hover {
+  color: rgba(232, 242, 255, 0.95);
+  border-color: rgba(78, 214, 209, 0.6);
+  transform: translateY(-1px);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 600px) {
+  h1 {
+    font-size: clamp(2rem, 8vw, 3rem);
+  }
+  input[type="email"] {
+    width: min(84vw, 360px);
+  }
+  .lang-switch {
+    top: 1.1rem;
+    right: 1.1rem;
+  }
+  .footer-link {
+    bottom: 1.25rem;
+  }
+  .impressum-content {
+    padding: 5rem 7vw 4rem;
+  }
+  .impressum-block {
+    font-size: 0.92rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+}
+</style>
+</head>
+<body class="lang-en" id="top">
+<canvas id="bg"></canvas>
+<div id="overlay"></div>
+<div id="noise"></div>
+<div class="lang-switch" role="group" aria-label="Language switch">
+  <a class="lang-link is-active" href="#" role="button" data-lang="en" lang="en" aria-pressed="true">EN</a>
+  <a class="lang-link" href="#" role="button" data-lang="de" lang="de" aria-pressed="false">DE</a>
+</div>
+<main>
+  <div class="hero">
+    <h1 class="lang lang-en"><span class="accent">Revolutionizing</span> insurance <span class="bright">fraud</span> <span class="accent">detection</span></h1>
+    <h1 class="lang lang-de"><span class="accent">Revolutionäre</span> <span class="bright">Betrugserkennung</span> <span class="accent">mit KI</span></h1>
+    <p class="lang lang-en">Together with leading research institutes, a68 is exploring a new generation of AI-powered fraud detection.</p>
+    <p class="lang lang-de">Gemeinsam mit führenden Forschungsinstituten erforscht a68 eine neue Generation KI gestützter Betrugserkennung.</p>
+    <form id="newsletter" novalidate>
+      <label class="sr-only" for="email">Email</label>
+      <input id="email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required>
+      <button type="submit">Join newsletter</button>
+    </form>
+    <div id="status" role="status" aria-live="polite"></div>
+  </div>
+</main>
+<div class="footer-link">
+  <a class="impressum-link" href="#impressum">Impressum</a>
+</div>
+<section id="impressum" class="impressum-panel" lang="de" aria-label="Impressum">
+  <div class="impressum-content">
+    <h2>Impressum</h2>
+    <div class="impressum-block">Angaben gemäß § 5 TMG</div>
+    <div class="impressum-block">
+      <strong>a68</strong><br>
+      Projekt im Rahmen des EXIST-Gründerstipendiums<br>
+      Vertreten durch das Gründerteam:<br>
+      Hans Baare-Schmidt, Julian Becker, Franco Marchesoni
+    </div>
+    <div class="impressum-block">
+      <strong>Kontakt:</strong><br>
+      Friedhofstraße 18<br>
+      64401 Groß-Bieberau<br>
+      Deutschland<br>
+      Telefon: <a href="tel:+4916090909902">+49 160 90909902</a><br>
+      E-Mail: <a href="mailto:julian@trisure.de">julian@trisure.de</a>
+    </div>
+    <div class="impressum-block">
+      <strong>Datenschutzbeauftragter:</strong><br>
+      Hans Baare-Schmidt<br>
+      Telefon: <a href="tel:+4915110100502">+49 151 10100502</a><br>
+      E-Mail: <a href="mailto:hans@trisure.de">hans@trisure.de</a>
+    </div>
+    <div class="impressum-block">
+      <strong>Hosting:</strong><br>
+      Die Datenverarbeitung erfolgt über Microsoft Azure-Server in Europa. Microsoft stellt vertraglich sicher,
+      dass alle geltenden Sicherheits- und Datenschutzstandards nach DSGVO eingehalten werden.
+    </div>
+    <div class="impressum-block">
+      <strong>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV:</strong><br>
+      Hans Baare-Schmidt<br>
+      Steinkrug 1<br>
+      21514 Büchen
+    </div>
+    <div class="impressum-block">
+      <strong>Haftungsausschluss:</strong><br>
+      Trotz sorgfältiger inhaltlicher Kontrolle übernehmen wir keine Haftung für die Inhalte externer Links.<br>
+      Für den Inhalt verlinkter Seiten sind ausschließlich deren Betreiber verantwortlich.
+    </div>
+    <div class="impressum-block">
+      <strong>Urheberrecht:</strong><br>
+      Die auf dieser Website veröffentlichten Inhalte unterliegen dem deutschen Urheberrecht. Beiträge Dritter
+      sind als solche gekennzeichnet.
+    </div>
+    <a class="impressum-back" href="#top">Zurück</a>
+  </div>
+</section>
+<script>
+(() => {
+  const canvas = document.getElementById('bg');
+  const ctx = canvas.getContext('2d', { alpha: true });
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reducedMotion = prefersReduced.matches;
+  const logo = {
+    img: new Image(),
+    ready: false,
+    ratio: 1,
+    white: null
+  };
+
+  logo.img.decoding = 'async';
+  logo.img.src = 'black.png';
+  logo.img.onload = () => {
+    logo.ready = true;
+    logo.ratio = logo.img.width / logo.img.height || 1;
+    logo.white = document.createElement('canvas');
+    logo.white.width = logo.img.width;
+    logo.white.height = logo.img.height;
+    const wctx = logo.white.getContext('2d');
+    wctx.clearRect(0, 0, logo.white.width, logo.white.height);
+    wctx.drawImage(logo.img, 0, 0);
+    wctx.globalCompositeOperation = 'source-in';
+    wctx.fillStyle = '#ffffff';
+    wctx.fillRect(0, 0, logo.white.width, logo.white.height);
+    if (reducedMotion) {
+      render(0);
+    }
+  };
+  logo.img.onerror = () => {
+    logo.ready = false;
+  };
+
+  const state = {
+    w: 0,
+    h: 0,
+    dpr: Math.min(window.devicePixelRatio || 1, 2),
+    pointer: { x: 0, y: 0, tx: 0, ty: 0 },
+    scroll: 0,
+    scrollV: 0,
+    time: 0,
+    lastTime: 0,
+    particles: [],
+    blobs: [],
+    logo: null,
+    spawnAcc: 0,
+    animating: false
+  };
+
+  const config = {
+    particleCount: 180,
+    blobCount: 6,
+    spawnRate: 4
+  };
+
+  const rand = (min, max) => Math.random() * (max - min) + min;
+  const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const smoothstep = (t) => t * t * (3 - 2 * t);
+
+  const setSize = () => {
+    const rect = canvas.getBoundingClientRect();
+    state.w = rect.width;
+    state.h = rect.height;
+    state.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(state.w * state.dpr);
+    canvas.height = Math.floor(state.h * state.dpr);
+    ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+
+    const area = state.w * state.h;
+    const baseCount = Math.floor(area / 12000);
+    config.particleCount = clamp(baseCount, 120, 240);
+    config.blobCount = clamp(Math.floor(area / 200000), 4, 7);
+
+    initBlobs();
+    initParticles();
+    render(state.time);
+  };
+
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(setSize, 120);
+  });
+
+  const setPointer = (x, y) => {
+    const nx = (x / state.w) * 2 - 1;
+    const ny = (y / state.h) * 2 - 1;
+    state.pointer.tx = clamp(nx, -1, 1);
+    state.pointer.ty = clamp(ny, -1, 1);
+    const mx = clamp((x / state.w) * 100, 0, 100);
+    const my = clamp((y / state.h) * 100, 0, 100);
+    document.documentElement.style.setProperty('--mx', `${mx}%`);
+    document.documentElement.style.setProperty('--my', `${my}%`);
+  };
+
+  window.addEventListener('pointermove', (e) => {
+    if (reducedMotion) return;
+    setPointer(e.clientX, e.clientY);
+  });
+
+  window.addEventListener('touchmove', (e) => {
+    if (reducedMotion) return;
+    if (!e.touches || !e.touches[0]) return;
+    const t = e.touches[0];
+    setPointer(t.clientX, t.clientY);
+  }, { passive: true });
+
+  const updateScroll = () => {
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    const nextScroll = maxScroll > 0 ? clamp(window.scrollY / maxScroll, 0, 1) : 0;
+    const delta = nextScroll - state.scroll;
+    state.scroll = nextScroll;
+    state.scrollV = lerp(state.scrollV, delta * 10, 0.25);
+  };
+  window.addEventListener('scroll', updateScroll, { passive: true });
+
+  const initBlobs = () => {
+    state.blobs = [];
+    for (let i = 0; i < config.blobCount; i++) {
+      state.blobs.push({
+        x: rand(0.1, 0.9),
+        y: rand(0.1, 0.9),
+        r: rand(0.2, 0.45),
+        vx: rand(-0.02, 0.02),
+        vy: rand(-0.02, 0.02),
+        hue: rand(185, 205),
+        alpha: rand(0.12, 0.28)
+      });
+    }
+  };
+
+  const spawnParticle = (radiusSpread) => {
+    const centerX = state.w * 0.5;
+    const centerY = state.h * 0.5;
+    const angle = Math.random() * Math.PI * 2;
+    const radius = radiusSpread;
+    const direction = Math.random() < 0.5 ? -1 : 1;
+    return {
+      x: centerX + Math.cos(angle) * radius,
+      y: centerY + Math.sin(angle) * radius,
+      vx: rand(-0.05, 0.05),
+      vy: rand(-0.05, 0.05),
+      radius: rand(0.8, 1.8),
+      seed: Math.random() * Math.PI * 2,
+      phase: Math.random() * Math.PI * 2,
+      orbit: rand(0.002, 0.005) * direction,
+      ringOffset: rand(-0.6, 0.6)
+    };
+  };
+
+  const initParticles = () => {
+    state.particles = [];
+    const ringBase = Math.min(state.w, state.h) * 0.26;
+    const ringWidth = ringBase * 0.22;
+    for (let i = 0; i < config.particleCount; i++) {
+      const radius = ringBase + rand(-ringWidth, ringWidth) + rand(0, ringWidth * 0.6);
+      state.particles.push(spawnParticle(radius));
+    }
+  };
+
+  const sceneWeights = (t) => {
+    const s = t * 3;
+    const i = Math.floor(s);
+    const f = smoothstep(s - i);
+    const w = [0, 0, 0, 0];
+    w[clamp(i, 0, 3)] = 1 - f;
+    w[clamp(i + 1, 0, 3)] += f;
+    return w;
+  };
+
+  const drawBackground = () => {
+    const g = ctx.createLinearGradient(0, 0, state.w, state.h);
+    g.addColorStop(0, '#2b123f');
+    g.addColorStop(0.55, '#0b1b33');
+    g.addColorStop(1, '#061427');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, state.w, state.h);
+    const glow = ctx.createRadialGradient(state.w * 0.22, state.h * 0.18, 0, state.w * 0.22, state.h * 0.18, Math.max(state.w, state.h) * 0.75);
+    glow.addColorStop(0, 'rgba(90, 45, 130, 0.55)');
+    glow.addColorStop(1, 'rgba(6, 20, 39, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, state.w, state.h);
+  };
+
+  const drawBlobs = (parallax, wts) => {
+    const accent = [45, 168, 255];
+    for (const blob of state.blobs) {
+      const px = (blob.x + Math.sin(state.time * 0.05 + blob.vx) * 0.02) * state.w;
+      const py = (blob.y + Math.cos(state.time * 0.05 + blob.vy) * 0.02) * state.h;
+      const r = blob.r * Math.min(state.w, state.h);
+      const offx = parallax.x * 30;
+      const offy = parallax.y * 30;
+      const core = ctx.createRadialGradient(px + offx, py + offy, 0, px + offx, py + offy, r);
+      const alpha = blob.alpha * (0.8 + wts[1] * 0.4 + wts[3] * 0.3);
+      core.addColorStop(0, `rgba(${accent[0]}, ${accent[1]}, ${accent[2]}, ${alpha})`);
+      core.addColorStop(1, 'rgba(6, 20, 39, 0)');
+      ctx.fillStyle = core;
+      ctx.fillRect(px - r, py - r, r * 2, r * 2);
+    }
+  };
+
+  const drawLogo = (parallax) => {
+    if (!logo.ready) {
+      state.logo = null;
+      return;
+    }
+    const ratio = logo.ratio || 1;
+    const base = clamp(state.w * 0.22, 120, 300);
+    const scale = 1;
+    const width = base * scale;
+    const height = width / ratio;
+    const driftX = 0;
+    const driftY = 0;
+    const px = state.w * 0.5 + parallax.x * state.w * 0.22 + driftX;
+    const py = state.h * 0.26 + parallax.y * state.h * 0.22 + driftY;
+    const alpha = 0.32;
+    state.logo = { x: px, y: py, r: Math.max(width, height) * 0.45 };
+
+    ctx.save();
+    const glow = ctx.createRadialGradient(px, py, 0, px, py, Math.max(width, height) * 1.1);
+    glow.addColorStop(0, 'rgba(45, 168, 255, 0.3)');
+    glow.addColorStop(1, 'rgba(6, 20, 39, 0)');
+    ctx.globalCompositeOperation = 'screen';
+    ctx.fillStyle = glow;
+    ctx.fillRect(px - width, py - height, width * 2, height * 2);
+
+    ctx.globalCompositeOperation = 'source-over';
+    if (logo.white) {
+      ctx.save();
+      ctx.filter = 'blur(14px)';
+      ctx.globalAlpha = alpha * 0.4;
+      ctx.drawImage(logo.white, px - width / 2, py - height / 2, width, height);
+      ctx.restore();
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(logo.white, px - width / 2, py - height / 2, width, height);
+    } else {
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(logo.img, px - width / 2, py - height / 2, width, height);
+    }
+    ctx.restore();
+  };
+
+  const drawParticles = (parallax, wts) => {
+    const network = wts[1];
+    const shield = wts[3];
+    const repulsion = reducedMotion ? 0 : 0.45;
+    const hub = {
+      x: state.w * 0.5,
+      y: state.h * 0.5
+    };
+    const ringBase = Math.min(state.w, state.h) * 0.26;
+    const ringWidth = ringBase * 0.22;
+    const pulse = 1 + Math.sin(state.time * 0.35) * 0.02;
+    const spawnRadius = ringBase * 2.2;
+
+    state.spawnAcc += state.delta * config.spawnRate;
+    while (state.spawnAcc >= 1) {
+      state.spawnAcc -= 1;
+      if (state.particles.length >= config.particleCount) {
+        state.particles.shift();
+      }
+      const jitter = rand(-ringWidth, ringWidth);
+      state.particles.push(spawnParticle(spawnRadius + jitter));
+    }
+
+    for (const p of state.particles) {
+      const dx = p.x - hub.x;
+      const dy = p.y - hub.y;
+      const dist = Math.hypot(dx, dy) + 0.001;
+      const target = ringBase * pulse + p.ringOffset * ringWidth;
+      const distanceFactor = clamp(dist / target, 0.6, 2.6);
+      const pull = (target - dist) * 0.008 * distanceFactor;
+      p.vx += (dx / dist) * pull;
+      p.vy += (dy / dist) * pull;
+      const spin = p.orbit * (0.4 + clamp(dist / target, 0.4, 1) * 0.4);
+      p.vx += (-dy / dist) * spin;
+      p.vy += (dx / dist) * spin;
+
+      if (state.logo) {
+        const ldx = p.x - state.logo.x;
+        const ldy = p.y - state.logo.y;
+        const ld = Math.hypot(ldx, ldy) + 0.001;
+        if (ld < state.logo.r) {
+          const force = (1 - ld / state.logo.r) * 1.6;
+          p.vx += (ldx / ld) * force;
+          p.vy += (ldy / ld) * force;
+        }
+      }
+      p.vx *= 0.98;
+      p.vy *= 0.98;
+
+      p.x += p.vx;
+      p.y += p.vy;
+
+      if (dist > ringBase * 3.5) {
+        p.x = hub.x + (dx / dist) * ringBase * 1.4;
+        p.y = hub.y + (dy / dist) * ringBase * 1.4;
+      }
+    }
+
+    for (const p of state.particles) {
+      const offsetX = 0;
+      const offsetY = 0;
+      const alpha = 0.32 + network * 0.22 + shield * 0.12;
+      ctx.fillStyle = `rgba(210, 235, 255, ${alpha})`;
+      ctx.beginPath();
+      ctx.arc(p.x + offsetX, p.y + offsetY, p.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  };
+
+  const drawLines = () => {
+    const connectDist = 130;
+    const lineAlpha = 0.12;
+    const maxLinks = 3;
+    const offsetX = 0;
+    const offsetY = 0;
+
+    for (let i = 0; i < state.particles.length; i++) {
+      const p = state.particles[i];
+      let links = 0;
+      for (let j = i + 1; j < state.particles.length; j++) {
+        const q = state.particles[j];
+        const dx = p.x - q.x;
+        const dy = p.y - q.y;
+        const d = Math.hypot(dx, dy);
+        if (d < connectDist) {
+          const midx = (p.x + q.x) / 2;
+          const midy = (p.y + q.y) / 2;
+          const alpha = lineAlpha * (1 - d / connectDist);
+          ctx.strokeStyle = `rgba(45, 168, 255, ${alpha})`;
+          ctx.lineWidth = 0.75;
+          ctx.beginPath();
+          ctx.moveTo(p.x + offsetX, p.y + offsetY);
+          ctx.quadraticCurveTo(midx + offsetX, midy + offsetY, q.x + offsetX, q.y + offsetY);
+          ctx.stroke();
+          links += 1;
+          if (links >= maxLinks) {
+            break;
+          }
+        }
+      }
+    }
+
+  };
+
+  const render = (ts) => {
+    const now = ts * 0.001;
+    state.delta = Math.min(Math.max(now - state.lastTime, 0), 0.05);
+    state.lastTime = now;
+    state.time = now;
+    updateScroll();
+
+    if (reducedMotion) {
+      state.pointer.x = 0;
+      state.pointer.y = 0;
+      state.scrollV = 0;
+    } else {
+      state.pointer.x = lerp(state.pointer.x, state.pointer.tx, 0.16);
+      state.pointer.y = lerp(state.pointer.y, state.pointer.ty, 0.16);
+      state.scrollV = lerp(state.scrollV, 0, 0.08);
+    }
+
+    const parallax = reducedMotion ? { x: 0, y: 0 } : { x: state.pointer.x, y: state.pointer.y };
+    const logoParallax = reducedMotion ? { x: 0, y: 0 } : { x: state.pointer.tx, y: state.pointer.ty };
+    const wts = sceneWeights(state.scroll);
+
+    ctx.clearRect(0, 0, state.w, state.h);
+    drawBackground();
+    drawBlobs(parallax, wts);
+    drawLogo(logoParallax);
+    drawParticles(parallax, wts);
+    drawLines();
+  };
+
+  let rafId = null;
+  const animate = (t) => {
+    render(t);
+    rafId = requestAnimationFrame(animate);
+  };
+
+  const startAnimation = () => {
+    if (state.animating) return;
+    state.animating = true;
+    rafId = requestAnimationFrame(animate);
+  };
+
+  const stopAnimation = () => {
+    if (!state.animating) return;
+    state.animating = false;
+    if (rafId) cancelAnimationFrame(rafId);
+  };
+
+  prefersReduced.addEventListener('change', (e) => {
+    reducedMotion = e.matches;
+    if (reducedMotion) {
+      stopAnimation();
+      render(0);
+    } else {
+      startAnimation();
+    }
+  });
+
+  const form = document.getElementById('newsletter');
+  const emailInput = document.getElementById('email');
+  const status = document.getElementById('status');
+  const footerLink = document.querySelector('.footer-link');
+  const languageLinks = document.querySelectorAll('.lang-link[data-lang]');
+  const emailLabel = document.querySelector('label[for="email"]');
+  const submitButton = form.querySelector('button[type="submit"]');
+  const translations = {
+    en: {
+      label: 'Email',
+      placeholder: 'you@company.com',
+      submit: 'Join newsletter',
+      invalid: 'Please enter a valid email.',
+      sending: 'Sending...',
+      success: 'Thanks. Check your inbox.',
+      error: 'Something went wrong. Please try again.'
+    },
+    de: {
+      label: 'E-Mail',
+      placeholder: 'sie@unternehmen.de',
+      submit: 'Informationen erhalten',
+      invalid: 'Bitte geben Sie eine gueltige E-Mail-Adresse ein.',
+      sending: 'Sende...',
+      success: 'Danke. Bitte pruefen Sie Ihr Postfach.',
+      error: 'Etwas ist schiefgelaufen. Bitte erneut versuchen.'
+    }
+  };
+  let messages = translations.en;
+
+  const setLanguage = (lang) => {
+    if (!translations[lang]) return;
+    document.body.classList.toggle('lang-en', lang === 'en');
+    document.body.classList.toggle('lang-de', lang === 'de');
+    document.documentElement.lang = lang;
+    const t = translations[lang];
+    emailLabel.textContent = t.label;
+    emailInput.placeholder = t.placeholder;
+    submitButton.textContent = t.submit;
+    messages = t;
+    status.textContent = '';
+    languageLinks.forEach((link) => {
+      const active = link.dataset.lang === lang;
+      link.classList.toggle('is-active', active);
+      link.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    try {
+      localStorage.setItem('lang', lang);
+    } catch {
+    }
+  };
+
+  const resolveInitialLang = () => {
+    try {
+      const saved = localStorage.getItem('lang');
+      if (saved && translations[saved]) return saved;
+    } catch {
+      return 'en';
+    }
+    const browser = (navigator.language || '').toLowerCase();
+    return browser.startsWith('de') ? 'de' : 'en';
+  };
+
+  setLanguage(resolveInitialLang());
+  languageLinks.forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      setLanguage(link.dataset.lang);
+    });
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const value = emailInput.value.trim();
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    if (!valid) {
+      status.textContent = messages.invalid;
+      status.style.color = 'rgba(255, 182, 182, 0.9)';
+      emailInput.focus();
+      return;
+    }
+    status.textContent = messages.sending;
+    status.style.color = 'rgba(232, 242, 255, 0.7)';
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: value })
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(payload.error || 'Request failed');
+      }
+      status.textContent = messages.success;
+      status.style.color = 'rgba(45, 168, 255, 0.9)';
+      form.reset();
+    } catch (err) {
+      status.textContent = messages.error;
+      status.style.color = 'rgba(255, 182, 182, 0.9)';
+    }
+  });
+
+  const updateFooter = () => {
+    if (!footerLink) return;
+    if (window.scrollY > 80) {
+      footerLink.classList.add('is-visible');
+    } else {
+      footerLink.classList.remove('is-visible');
+    }
+  };
+  window.addEventListener('scroll', updateFooter, { passive: true });
+
+  setSize();
+  updateScroll();
+  updateFooter();
+  if (reducedMotion) {
+    render(0);
+  } else {
+    startAnimation();
+  }
+})();
+</script>
+</body>
+</html>
+

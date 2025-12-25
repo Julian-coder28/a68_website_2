@@ -352,7 +352,7 @@ button:active {
     <h1 class="lang lang-de"><span class="accent">Revolutionäre</span> <span class="bright">Betrugserkennung</span> <span class="accent">mit KI</span></h1>
     <p class="lang lang-en">Together with leading research institutes, a68 is exploring a new generation of AI-powered fraud detection.</p>
     <p class="lang lang-de">Gemeinsam mit führenden Forschungsinstituten erforscht a68 eine neue Generation KI gestützter Betrugserkennung.</p>
-    <form id="newsletter" novalidate>
+    <form id="newsletter" method="POST" action="https://formsubmit.co/julian@a68.io" novalidate>
       <label class="sr-only" for="email">Email</label>
       <input id="email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required>
       <button type="submit">Join newsletter</button>
@@ -366,17 +366,17 @@ button:active {
 <section id="impressum" class="impressum-panel" lang="de" aria-label="Impressum">
   <div class="impressum-content">
     <h2>Impressum</h2>
-    <div class="impressum-block">Angaben gemäß § 5 TMG</div>
+    <div class="impressum-block">Angaben gem&auml;&szlig; &sect; 5 TMG</div>
     <div class="impressum-block">
       <strong>a68</strong><br>
-      Projekt im Rahmen des EXIST-Gründerstipendiums<br>
-      Vertreten durch das Gründerteam:<br>
+      Projekt im Rahmen des EXIST-Gr&uuml;nderstipendiums<br>
+      Vertreten durch das Gr&uuml;nderteam:<br>
       Hans Baare-Schmidt, Julian Becker, Franco Marchesoni
     </div>
     <div class="impressum-block">
       <strong>Kontakt:</strong><br>
-      Friedhofstraße 18<br>
-      64401 Groß-Bieberau<br>
+      Friedhofstra&szlig;e 18<br>
+      64401 Gro&szlig;-Bieberau<br>
       Deutschland<br>
       Telefon: <a href="tel:+4916090909902">+49 160 90909902</a><br>
       E-Mail: <a href="mailto:julian@trisure.de">julian@trisure.de</a>
@@ -389,26 +389,26 @@ button:active {
     </div>
     <div class="impressum-block">
       <strong>Hosting:</strong><br>
-      Die Datenverarbeitung erfolgt über Microsoft Azure-Server in Europa. Microsoft stellt vertraglich sicher,
+      Die Datenverarbeitung erfolgt &uuml;ber Microsoft Azure-Server in Europa. Microsoft stellt vertraglich sicher,
       dass alle geltenden Sicherheits- und Datenschutzstandards nach DSGVO eingehalten werden.
     </div>
     <div class="impressum-block">
-      <strong>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV:</strong><br>
+      <strong>Verantwortlich f&uuml;r den Inhalt nach &sect; 55 Abs. 2 RStV:</strong><br>
       Hans Baare-Schmidt<br>
       Steinkrug 1<br>
-      21514 Büchen
+      21514 B&uuml;chen
     </div>
     <div class="impressum-block">
       <strong>Haftungsausschluss:</strong><br>
-      Trotz sorgfältiger inhaltlicher Kontrolle übernehmen wir keine Haftung für die Inhalte externer Links.<br>
-      Für den Inhalt verlinkter Seiten sind ausschließlich deren Betreiber verantwortlich.
+      Trotz sorgf&auml;ltiger inhaltlicher Kontrolle &uuml;bernehmen wir keine Haftung f&uuml;r die Inhalte externer Links.<br>
+      F&uuml;r den Inhalt verlinkter Seiten sind ausschlie&szlig;lich deren Betreiber verantwortlich.
     </div>
     <div class="impressum-block">
       <strong>Urheberrecht:</strong><br>
-      Die auf dieser Website veröffentlichten Inhalte unterliegen dem deutschen Urheberrecht. Beiträge Dritter
+      Die auf dieser Website ver&ouml;ffentlichten Inhalte unterliegen dem deutschen Urheberrecht. Beitr&auml;ge Dritter
       sind als solche gekennzeichnet.
     </div>
-    <a class="impressum-back" href="#top">Zurück</a>
+    <a class="impressum-back" href="#top">Zur&uuml;ck</a>
   </div>
 </section>
 <script>
@@ -832,7 +832,8 @@ button:active {
       invalid: 'Please enter a valid email.',
       sending: 'Sending...',
       success: 'Thanks. Check your inbox.',
-      error: 'Something went wrong. Please try again.'
+      error: 'Something went wrong. Please try again.',
+      missingEndpoint: 'Form endpoint not set.'
     },
     de: {
       label: 'E-Mail',
@@ -841,10 +842,18 @@ button:active {
       invalid: 'Bitte geben Sie eine gueltige E-Mail-Adresse ein.',
       sending: 'Sende...',
       success: 'Danke. Bitte pruefen Sie Ihr Postfach.',
-      error: 'Etwas ist schiefgelaufen. Bitte erneut versuchen.'
+      error: 'Etwas ist schiefgelaufen. Bitte erneut versuchen.',
+      missingEndpoint: 'Formular-Endpunkt fehlt.'
     }
   };
   let messages = translations.en;
+
+  const getFormEndpoint = () => {
+    const endpoint = (form.getAttribute('action') || '').trim();
+    return endpoint;
+  };
+
+  const isFormspree = (endpoint) => /formspree\.io/i.test(endpoint);
 
   const setLanguage = (lang) => {
     if (!translations[lang]) return;
@@ -888,22 +897,35 @@ button:active {
   });
 
   form.addEventListener('submit', async (e) => {
-    e.preventDefault();
     const value = emailInput.value.trim();
     const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
     if (!valid) {
+      e.preventDefault();
       status.textContent = messages.invalid;
       status.style.color = 'rgba(255, 182, 182, 0.9)';
       emailInput.focus();
       return;
     }
+    const endpoint = getFormEndpoint();
+    if (!endpoint) {
+      e.preventDefault();
+      status.textContent = messages.missingEndpoint;
+      status.style.color = 'rgba(255, 182, 182, 0.9)';
+      return;
+    }
+    if (!isFormspree(endpoint)) {
+      status.textContent = messages.sending;
+      status.style.color = 'rgba(232, 242, 255, 0.7)';
+      return;
+    }
+    e.preventDefault();
     status.textContent = messages.sending;
     status.style.color = 'rgba(232, 242, 255, 0.7)';
     try {
-      const res = await fetch('/api/subscribe', {
+      const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: value })
+        headers: { 'Accept': 'application/json' },
+        body: new FormData(form)
       });
       const payload = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -940,4 +962,5 @@ button:active {
 </script>
 </body>
 </html>
+
 

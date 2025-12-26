@@ -59,6 +59,8 @@
   ]
 }
 </script>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
 <link rel="icon" type="image/png" href="favicon-white.png">
 <style>
 :root {
@@ -366,6 +368,12 @@ button:active {
   white-space: nowrap;
   border: 0;
 }
+body.is-smartphone #overlay {
+  opacity: 0.45;
+}
+body.is-smartphone #noise {
+  opacity: 0.12;
+}
 @media (max-width: 600px) {
   h1 {
     font-size: clamp(2rem, 8vw, 3rem);
@@ -529,19 +537,45 @@ button:active {
   const lerp = (a, b, t) => a + (b - a) * t;
   const smoothstep = (t) => t * t * (3 - 2 * t);
 
+  const detectSmartphone = () => {
+    const uaData = navigator.userAgentData;
+    if (uaData && typeof uaData.mobile === 'boolean') {
+      return uaData.mobile;
+    }
+    const ua = navigator.userAgent || '';
+    const uaMobile = /android|iphone|ipod|blackberry|iemobile|opera mini|mobile/i.test(ua);
+    const isCoarse = window.matchMedia('(pointer: coarse)').matches;
+    const isNarrow = Math.min(window.innerWidth, window.innerHeight) <= 820;
+    return uaMobile || (isCoarse && isNarrow);
+  };
+
+  let isSmartphone = detectSmartphone();
+  const applyDeviceMode = () => {
+    isSmartphone = detectSmartphone();
+    document.body.classList.toggle('is-smartphone', isSmartphone);
+    config.spawnRate = isSmartphone ? 2.2 : 4;
+  };
+
   const setSize = () => {
     const rect = canvas.getBoundingClientRect();
     state.w = rect.width;
     state.h = rect.height;
-    state.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dprCap = isSmartphone ? 1.25 : 2;
+    state.dpr = Math.min(window.devicePixelRatio || 1, dprCap);
     canvas.width = Math.floor(state.w * state.dpr);
     canvas.height = Math.floor(state.h * state.dpr);
     ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
 
     const area = state.w * state.h;
-    const baseCount = Math.floor(area / 12000);
-    config.particleCount = clamp(baseCount, 120, 240);
-    config.blobCount = clamp(Math.floor(area / 200000), 4, 7);
+    const density = isSmartphone ? 0.6 : 1;
+    const baseCount = Math.floor(area / 12000 * density);
+    const minParticles = isSmartphone ? 80 : 120;
+    const maxParticles = isSmartphone ? 180 : 240;
+    config.particleCount = clamp(baseCount, minParticles, maxParticles);
+    const blobDensity = isSmartphone ? 0.7 : 1;
+    const minBlobs = isSmartphone ? 3 : 4;
+    const maxBlobs = isSmartphone ? 5 : 7;
+    config.blobCount = clamp(Math.floor(area / 200000 * blobDensity), minBlobs, maxBlobs);
 
     initBlobs();
     initParticles();
@@ -551,7 +585,10 @@ button:active {
   let resizeTimer = null;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(setSize, 120);
+    resizeTimer = setTimeout(() => {
+      applyDeviceMode();
+      setSize();
+    }, 120);
   });
 
   const setPointer = (x, y) => {
@@ -684,7 +721,8 @@ button:active {
     const driftX = 0;
     const driftY = 0;
     const px = state.w * 0.5 + parallax.x * state.w * 0.22 + driftX;
-    const py = state.h * 0.26 + parallax.y * state.h * 0.22 + driftY;
+    const logoBaseY = isSmartphone ? 0.18 : 0.26;
+    const py = state.h * logoBaseY + parallax.y * state.h * 0.22 + driftY;
     const alpha = 0.32;
     state.logo = { x: px, y: py, r: Math.max(width, height) * 0.45 };
 
@@ -782,9 +820,9 @@ button:active {
   };
 
   const drawLines = () => {
-    const connectDist = 130;
-    const lineAlpha = 0.12;
-    const maxLinks = 3;
+    const connectDist = isSmartphone ? 110 : 130;
+    const lineAlpha = isSmartphone ? 0.08 : 0.12;
+    const maxLinks = isSmartphone ? 2 : 3;
     const offsetX = 0;
     const offsetY = 0;
 
@@ -833,8 +871,9 @@ button:active {
       state.scrollV = lerp(state.scrollV, 0, 0.08);
     }
 
-    const parallax = reducedMotion ? { x: 0, y: 0 } : { x: state.pointer.x, y: state.pointer.y };
-    const logoParallax = reducedMotion ? { x: 0, y: 0 } : { x: state.pointer.tx, y: state.pointer.ty };
+    const parallaxScale = isSmartphone ? 0.65 : 1;
+    const parallax = reducedMotion ? { x: 0, y: 0 } : { x: state.pointer.x * parallaxScale, y: state.pointer.y * parallaxScale };
+    const logoParallax = reducedMotion ? { x: 0, y: 0 } : { x: state.pointer.tx * parallaxScale, y: state.pointer.ty * parallaxScale };
     const wts = sceneWeights(state.scroll);
 
     ctx.clearRect(0, 0, state.w, state.h);
@@ -1006,6 +1045,7 @@ button:active {
   };
   window.addEventListener('scroll', updateFooter, { passive: true });
 
+  applyDeviceMode();
   setSize();
   updateScroll();
   updateFooter();

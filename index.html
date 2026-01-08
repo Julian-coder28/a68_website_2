@@ -728,20 +728,18 @@ body.is-smartphone #noise {
     state.logo = { x: px, y: py, r: Math.max(width, height) * 0.45 };
 
     ctx.save();
-    const glow = ctx.createRadialGradient(px, py, 0, px, py, Math.max(width, height) * 1.1);
+    const glowRadius = Math.max(width, height) * 1.1;
+    const glow = ctx.createRadialGradient(px, py, 0, px, py, glowRadius);
     glow.addColorStop(0, 'rgba(45, 168, 255, 0.3)');
     glow.addColorStop(1, 'rgba(6, 20, 39, 0)');
     ctx.globalCompositeOperation = 'screen';
     ctx.fillStyle = glow;
-    ctx.fillRect(px - width, py - height, width * 2, height * 2);
+    ctx.beginPath();
+    ctx.arc(px, py, glowRadius, 0, Math.PI * 2);
+    ctx.fill();
 
     ctx.globalCompositeOperation = 'source-over';
     if (logo.white) {
-      ctx.save();
-      ctx.filter = 'blur(14px)';
-      ctx.globalAlpha = alpha * 0.4;
-      ctx.drawImage(logo.white, px - width / 2, py - height / 2, width, height);
-      ctx.restore();
       ctx.globalAlpha = alpha;
       ctx.drawImage(logo.white, px - width / 2, py - height / 2, width, height);
     } else {
@@ -1058,4 +1056,3 @@ body.is-smartphone #noise {
 </script>
 </body>
 </html>
-

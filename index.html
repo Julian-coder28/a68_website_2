@@ -126,6 +126,16 @@ main {
 .hero {
   max-width: 1100px;
 }
+.hero-logo {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 1.4rem;
+}
+.hero-logo img {
+  width: clamp(120px, 16vw, 220px);
+  height: auto;
+  filter: drop-shadow(0 12px 26px rgba(6, 20, 39, 0.5));
+}
 .lang {
   display: none;
 }
@@ -413,6 +423,9 @@ body.is-smartphone #noise {
 </div>
 <main>
   <div class="hero">
+    <div class="hero-logo">
+      <img src="logo.svg" alt="a68 Logo">
+    </div>
     <h1 class="lang lang-en" lang="en"><span class="accent">Revolutionizing</span> insurance <span class="bright">fraud</span> <span class="accent">detection</span></h1>
     <h1 class="lang lang-de" lang="de"><span class="accent">Wir revolutionieren</span> die <span class="bright">Erkennung</span> von <span class="accent">Versicherungsbetrug</span></h1>
     <p class="lang lang-en" lang="en">Together with leading research institutes, a68 is exploring a new generation of AI-powered fraud detection.</p>
@@ -482,34 +495,6 @@ body.is-smartphone #noise {
   const ctx = canvas.getContext('2d', { alpha: true });
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   let reducedMotion = prefersReduced.matches;
-  const logo = {
-    img: new Image(),
-    ready: false,
-    ratio: 1,
-    white: null
-  };
-
-  logo.img.decoding = 'async';
-  logo.img.src = 'black.png';
-  logo.img.onload = () => {
-    logo.ready = true;
-    logo.ratio = logo.img.width / logo.img.height || 1;
-    logo.white = document.createElement('canvas');
-    logo.white.width = logo.img.width;
-    logo.white.height = logo.img.height;
-    const wctx = logo.white.getContext('2d');
-    wctx.clearRect(0, 0, logo.white.width, logo.white.height);
-    wctx.drawImage(logo.img, 0, 0);
-    wctx.globalCompositeOperation = 'source-in';
-    wctx.fillStyle = '#ffffff';
-    wctx.fillRect(0, 0, logo.white.width, logo.white.height);
-    if (reducedMotion) {
-      render(0);
-    }
-  };
-  logo.img.onerror = () => {
-    logo.ready = false;
-  };
 
   const state = {
     w: 0,
@@ -522,7 +507,6 @@ body.is-smartphone #noise {
     lastTime: 0,
     particles: [],
     blobs: [],
-    logo: null,
     spawnAcc: 0,
     animating: false
   };
@@ -709,46 +693,6 @@ body.is-smartphone #noise {
     }
   };
 
-  const drawLogo = (parallax) => {
-    if (!logo.ready) {
-      state.logo = null;
-      return;
-    }
-    const ratio = logo.ratio || 1;
-    const base = clamp(state.w * 0.22, 120, 300);
-    const scale = 1;
-    const width = base * scale;
-    const height = width / ratio;
-    const driftX = 0;
-    const driftY = 0;
-    const px = state.w * 0.5 + parallax.x * state.w * 0.22 + driftX;
-    const logoBaseY = isSmartphone ? 0.18 : 0.26;
-    const py = state.h * logoBaseY + parallax.y * state.h * 0.22 + driftY;
-    const alpha = 0.32;
-    state.logo = { x: px, y: py, r: Math.max(width, height) * 0.45 };
-
-    ctx.save();
-    const glowRadius = Math.max(width, height) * 1.1;
-    const glow = ctx.createRadialGradient(px, py, 0, px, py, glowRadius);
-    glow.addColorStop(0, 'rgba(45, 168, 255, 0.3)');
-    glow.addColorStop(1, 'rgba(6, 20, 39, 0)');
-    ctx.globalCompositeOperation = 'screen';
-    ctx.fillStyle = glow;
-    ctx.beginPath();
-    ctx.arc(px, py, glowRadius, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.globalCompositeOperation = 'source-over';
-    if (logo.white) {
-      ctx.globalAlpha = alpha;
-      ctx.drawImage(logo.white, px - width / 2, py - height / 2, width, height);
-    } else {
-      ctx.globalAlpha = alpha;
-      ctx.drawImage(logo.img, px - width / 2, py - height / 2, width, height);
-    }
-    ctx.restore();
-  };
-
   const drawParticles = (parallax, wts) => {
     const network = wts[1];
     const shield = wts[3];
@@ -784,17 +728,6 @@ body.is-smartphone #noise {
       const spin = p.orbit * (0.4 + clamp(dist / target, 0.4, 1) * 0.4);
       p.vx += (-dy / dist) * spin;
       p.vy += (dx / dist) * spin;
-
-      if (state.logo) {
-        const ldx = p.x - state.logo.x;
-        const ldy = p.y - state.logo.y;
-        const ld = Math.hypot(ldx, ldy) + 0.001;
-        if (ld < state.logo.r) {
-          const force = (1 - ld / state.logo.r) * 1.6;
-          p.vx += (ldx / ld) * force;
-          p.vy += (ldy / ld) * force;
-        }
-      }
       p.vx *= 0.98;
       p.vy *= 0.98;
 
@@ -872,13 +805,11 @@ body.is-smartphone #noise {
 
     const parallaxScale = isSmartphone ? 0.65 : 1;
     const parallax = reducedMotion ? { x: 0, y: 0 } : { x: state.pointer.x * parallaxScale, y: state.pointer.y * parallaxScale };
-    const logoParallax = reducedMotion ? { x: 0, y: 0 } : { x: state.pointer.tx * parallaxScale, y: state.pointer.ty * parallaxScale };
     const wts = sceneWeights(state.scroll);
 
     ctx.clearRect(0, 0, state.w, state.h);
     drawBackground();
     drawBlobs(parallax, wts);
-    drawLogo(logoParallax);
     drawParticles(parallax, wts);
     drawLines();
   };
